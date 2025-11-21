@@ -41,6 +41,10 @@ jobs:
             target/
           key: aarch64-pc-windows-msvc-cargo-windows-latest
 
+      - name: Add Rust target
+        run: rustup target add aarch64-pc-windows-msvc
+        shell: bash
+
       - name: Install dependencies
         run: yarn install
 
