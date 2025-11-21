@@ -1,0 +1,60 @@
+name: Build Windows ARM64
+
+on:
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  DEBUG: napi:*
+  APP_NAME: libsql
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-win-arm64:
+    name: Build Windows ARM64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: aarch64-pc-windows-msvc-cargo-windows-latest
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build --target aarch64-pc-windows-msvc
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-aarch64-pc-windows-msvc
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+
+      - name: List output files
+        run: ls -la
+        shell: bash
