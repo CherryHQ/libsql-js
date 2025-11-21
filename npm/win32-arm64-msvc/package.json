@@ -1,0 +1,22 @@
+{
+  "name": "@cherrystudio/win32-arm64-msvc",
+  "version": "0.6.0-pre.26",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tursodatabase/libsql-js"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "index.node",
+  "files": [
+    "index.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}
