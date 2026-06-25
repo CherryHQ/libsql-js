@@ -1,0 +1,68 @@
+name: Build Windows ARM64 (neon, v0.5)
+
+on:
+  push:
+    branches:
+      - cherry/v0.5-win-arm64 # push 到该分支即触发,不受默认分支限制
+  workflow_dispatch: # 也允许手动触发
+
+permissions:
+  contents: read
+
+jobs:
+  build-win-arm64:
+    name: Build aarch64-pc-windows-msvc (neon)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc
+
+      - name: Add Rust target (explicit)
+        run: rustup target add aarch64-pc-windows-msvc
+        shell: bash
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: aarch64-pc-windows-msvc-cargo-windows-latest
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (cross-compile to arm64)
+        run: cargo build --message-format=json --release --target aarch64-pc-windows-msvc | npx neon dist --name libsql-js
+        shell: bash
+
+      - name: Pack platform package
+        run: npx neon pack-build -t aarch64-pc-windows-msvc -o dist
+        shell: bash
+
+      - name: List output files
+        run: ls -la dist/
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-aarch64-pc-windows-msvc
+          path: dist/*.tgz
+          if-no-files-found: error
